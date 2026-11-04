@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     bash \
@@ -11,24 +10,21 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 1. Install Hermes CLI
+# Install Hermes CLI
 RUN curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-
-# 2. Add Hermes to PATH
 ENV PATH="/root/.hermes/bin:/root/.local/bin:${PATH}"
 
-# 3. Install the external DB memory plugin
+# Install memory plugin
 RUN hermes plugins install severian || true
-
-# 4. Tell Hermes to use the external DB
 ENV HERMES_MEMORY_PROVIDER="severian"
 
-# 5. Install Python dependencies
+# Install Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copy your bot code
+# Copy code
 COPY bot.py .
+COPY pinger.py .
 
-# 7. Start the bot
-CMD ["python", "bot.py"]
+# Start the pinger in the background, then start the bot
+CMD ["sh", "-c", "python pinger.py & python bot.py"]
