@@ -26,7 +26,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     env["HERMES_MODEL"] = "llama3-70b-8192"
     
     try:
-        # Using -z for one-shot script mode instead of 'run'
+        # Fix: Remove the stale lock file before calling Hermes
+        lock_file = "/root/.hermes/installs/8a4017c4cabfe15f/.install.lock"
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+
+        # Use -z for one-shot script mode
         result = subprocess.run(
             ["hermes", "-z", f"User ID: {chat_id}\nMessage: {user_text}"], 
             capture_output=True, text=True, env=env, timeout=120
