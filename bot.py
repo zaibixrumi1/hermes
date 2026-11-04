@@ -22,8 +22,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(update.message.chat_id)
     
     env = os.environ.copy()
-    env["OPENROUTER_BASE_URL"] = "https://openrouter.ai/api/v1"
-    env["HERMES_MODEL"] = "anthropic/claude-3.5-sonnet"
+   env["GROQ_BASE_URL"] = "https://api.groq.com/openai/v1"
+env["HERMES_MODEL"] = "llama3-70b-8192"
     
     try:
         result = subprocess.run(
