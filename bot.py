@@ -11,15 +11,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     env["GROQ_API_KEY"] = os.environ.get("GROQ_API_KEY")
     
     try:
-        # Remove the stale lock file just in case
+        # Remove the stale lock file
         lock_file = "/root/.hermes/installs/8a4017c4cabfe15f/.install.lock"
         if os.path.exists(lock_file):
             os.remove(lock_file)
 
-        # Using the exact flags from the help menu: --provider and -m
+        # Using --dev to skip the gateway startup and run directly
         result = subprocess.run(
             [
                 "hermes", 
+                "--dev",
                 "--provider", "groq", 
                 "-m", "llama3-70b-8192",
                 "-z", f"User ID: {chat_id}\nMessage: {user_text}"
