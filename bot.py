@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
-# 1. This keeps Render awake 24/7
+# 1. Pinger (Keeps Render awake)
 class PingHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -16,14 +16,14 @@ def run_pinger():
     port = int(os.environ.get("PORT", 8080))
     HTTPServer(('0.0.0.0', port), PingHandler).serve_forever()
 
-# 2. This talks to Telegram and Hermes
+# 2. Telegram + Hermes Logic
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     chat_id = str(update.message.chat_id)
     
     env = os.environ.copy()
-   env["GROQ_BASE_URL"] = "https://api.groq.com/openai/v1"
-env["HERMES_MODEL"] = "llama3-70b-8192"
+    env["GROQ_BASE_URL"] = "https://api.groq.com/openai/v1"
+    env["HERMES_MODEL"] = "llama3-70b-8192"
     
     try:
         result = subprocess.run(
@@ -36,7 +36,7 @@ env["HERMES_MODEL"] = "llama3-70b-8192"
         
     await update.message.reply_text(reply)
 
-# 3. Starts everything
+# 3. Start Bot
 if __name__ == "__main__":
     threading.Thread(target=run_pinger, daemon=True).start()
     app = ApplicationBuilder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
