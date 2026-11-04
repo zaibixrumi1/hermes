@@ -17,9 +17,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists(lock_file):
             os.remove(lock_file)
 
+        # Added --no-gateway to prevent the 10-second timeout on Render's free tier
         result = subprocess.run(
-            ["hermes", "-z", f"User ID: {chat_id}\nMessage: {user_text}"], 
-            capture_output=True, text=True, env=env, timeout=120
+            ["hermes", "--no-gateway", "-z", f"User ID: {chat_id}\nMessage: {user_text}"], 
+            capture_output=True, text=True, env=env, timeout=300
         )
         reply = result.stdout.strip() or f"Error: {result.stderr}"
     except Exception as e:
