@@ -1,22 +1,8 @@
 import os
 import subprocess
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
-# 1. Pinger (Keeps Render awake)
-class PingHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"OK")
-
-def run_pinger():
-    port = int(os.environ.get("PORT", 8080))
-    HTTPServer(('0.0.0.0', port), PingHandler).serve_forever()
-
-# 2. Telegram + Hermes Logic
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     chat_id = str(update.message.chat_id)
@@ -26,12 +12,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     env["HERMES_MODEL"] = "llama3-70b-8192"
     
     try:
-        # Fix: Remove the stale lock file before calling Hermes
+        # Remove the stale lock file before calling Hermes
         lock_file = "/root/.hermes/installs/8a4017c4cabfe15f/.install.lock"
         if os.path.exists(lock_file):
             os.remove(lock_file)
 
-        # Use -z for one-shot script mode
         result = subprocess.run(
             ["hermes", "-z", f"User ID: {chat_id}\nMessage: {user_text}"], 
             capture_output=True, text=True, env=env, timeout=120
@@ -42,9 +27,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     await update.message.reply_text(reply)
 
-# 3. Start Bot
 if __name__ == "__main__":
-    threading.Thread(target=run_pinger, daemon=True).start()
     app = ApplicationBuilder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     app.run_polling()
