@@ -26,8 +26,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     env["HERMES_MODEL"] = "llama3-70b-8192"
     
     try:
+        # Using -z for one-shot script mode instead of 'run'
         result = subprocess.run(
-            ["hermes", "run", f"User ID: {chat_id}\nMessage: {user_text}"], 
+            ["hermes", "-z", f"User ID: {chat_id}\nMessage: {user_text}"], 
             capture_output=True, text=True, env=env, timeout=120
         )
         reply = result.stdout.strip() or f"Error: {result.stderr}"
