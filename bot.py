@@ -8,18 +8,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = str(update.message.chat_id)
     
     env = os.environ.copy()
-    env["GROQ_BASE_URL"] = "https://api.groq.com/openai/v1"
-    env["HERMES_MODEL"] = "llama3-70b-8192"
+    env["GROQ_API_KEY"] = os.environ.get("GROQ_API_KEY")
     
     try:
-        # Remove the stale lock file before calling Hermes
+        # Remove the stale lock file just in case
         lock_file = "/root/.hermes/installs/8a4017c4cabfe15f/.install.lock"
         if os.path.exists(lock_file):
             os.remove(lock_file)
 
-        # Added --no-gateway to prevent the 10-second timeout on Render's free tier
+        # Using the exact flags from the help menu: --provider and -m
         result = subprocess.run(
-            ["hermes", "--no-gateway", "-z", f"User ID: {chat_id}\nMessage: {user_text}"], 
+            [
+                "hermes", 
+                "--provider", "groq", 
+                "-m", "llama3-70b-8192",
+                "-z", f"User ID: {chat_id}\nMessage: {user_text}"
+            ], 
             capture_output=True, text=True, env=env, timeout=300
         )
         reply = result.stdout.strip() or f"Error: {result.stderr}"
